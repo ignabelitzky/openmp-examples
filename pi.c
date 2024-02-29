@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "omp.h"
+#include <omp.h>
 
 static long num_steps = 100000000;
 double step;
