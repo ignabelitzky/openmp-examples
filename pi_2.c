@@ -4,12 +4,11 @@
 static long num_steps = 100000000;
 double step;
 
-#define PAD 8   // assume 64 byte L1 cache line size
 #define NUM_THREADS 2
 
 int main() {
     int i, nthreads;
-    double pi, sum[NUM_THREADS][PAD];
+    double pi, sum;
     double start_time, run_time;
 
     step = 1.0/(double) num_steps;
@@ -20,19 +19,18 @@ int main() {
     #pragma omp parallel
     {
         int i, id, nthrds;
-        double x;
+        double x, sum;
         id = omp_get_thread_num();
         nthrds = omp_get_num_threads();
         if(id == 0)
             nthreads = nthrds;
-        for(i = id, sum[id][0]=0.0; i < num_steps; i = i + nthrds) {
+        for(i = id, sum=0.0; i < num_steps; i = i + nthrds) {
             x = (i+0.5)*step;
-            sum[id][0] += 4.0/(1.0+x*x);
+            sum += 4.0/(1.0+x*x);
         }
+        #pragma omp critical
+        pi += sum * step;
     }
-
-    for(i = 0, pi = 0.0; i < nthreads; i++)
-        pi += sum[i][0] * step;
 
     run_time = omp_get_wtime() - start_time;
 
